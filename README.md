@@ -61,9 +61,11 @@ tagged as `vMAJOR.MINOR.PATCH` on `main`.
 
 ## Repository Orientation
 
-This repository currently contains only Git setup and governance files.
-Framework structure (source, tests, configuration, scenarios) will be
-introduced in a subsequent project phase and documented here as it lands.
+The repository structure (`framework/` for the reusable Layer-2 core,
+`applications/` for Layer-1 application/domain implementations) is
+established per the approved architecture (P2-D10). See
+[`STRUCTURE.md`](STRUCTURE.md) for the layer/directory mapping. No
+framework capability or scenario logic is implemented yet.
 
 ## Contributing
 
