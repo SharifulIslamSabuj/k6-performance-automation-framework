@@ -26,6 +26,7 @@ import { extract } from '../../../framework/correlation/index.js';
 import { getStaticData, generateTestData } from '../../../framework/test-data/index.js';
 import { hasStatus, hasField, withOperationTag, buildThresholds } from '../../../framework/evidence/index.js';
 import { logOperation } from '../../../framework/logging/index.js';
+import { classifyError } from '../../../framework/error-handling/index.js';
 import { environments } from '../config/environments.js';
 import { staticData, generateOrderReference } from '../data/catalog.js';
 
@@ -49,6 +50,12 @@ export const options = {
 // already never include credential/secret values (established in their
 // respective Phase 4.4/4.3/4.5 baselines), so surfacing e.message here
 // introduces no new leakage risk.
+//
+// The failure category passed to logOperation is read back off the
+// thrown Error via classifyError (Phase 4.14) rather than restated as a
+// literal here — the category and the message it is derived from can
+// never drift apart, since both come from the one Error the framework
+// itself threw.
 
 function authenticateCustomer(authEndpoint) {
   try {
@@ -61,7 +68,7 @@ function authenticateCustomer(authEndpoint) {
     logOperation({ operation: 'authenticate', outcome: 'success', detail: `status=${result.status}` });
     return result;
   } catch (e) {
-    logOperation({ operation: 'authenticate', outcome: 'failure', category: 'Authentication Failure', detail: e.message });
+    logOperation({ operation: 'authenticate', outcome: 'failure', category: classifyError(e), detail: e.message });
     throw e;
   }
 }
@@ -98,7 +105,7 @@ function extractFirstProductId(searchResponse) {
     logOperation({
       operation: 'extract_product_id',
       outcome: 'failure',
-      category: 'Correlation/Data-Dependency Failure',
+      category: classifyError(e),
       detail: e.message,
     });
     throw e;
