@@ -99,7 +99,11 @@ function submitOrder(apiBaseUrl, token, productId, orderReference) {
   return res;
 }
 
-export default function purchaseFlow() {
+// Named export in addition to the default export (below) so this
+// journey can be referenced by name (exec: 'purchaseFlow') from a
+// load-profile runner script under Phase 4.11 — a pure export-mechanism
+// addition, not a change to the journey's business logic.
+export function purchaseFlow() {
   const authEndpoint = resolveConfig(environments, 'authEndpoint');
   const apiBaseUrl = resolveConfig(environments, 'apiBaseUrl');
 
@@ -114,3 +118,5 @@ export default function purchaseFlow() {
   const orderReference = generateTestData(generateOrderReference);
   submitOrder(apiBaseUrl, authResult.token, productId, orderReference);
 }
+
+export default purchaseFlow;
