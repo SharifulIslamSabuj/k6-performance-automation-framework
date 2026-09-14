@@ -25,6 +25,7 @@ import { sendRequest } from '../../../framework/request/index.js';
 import { extract } from '../../../framework/correlation/index.js';
 import { getStaticData, generateTestData } from '../../../framework/test-data/index.js';
 import { hasStatus, hasField, withOperationTag, buildThresholds } from '../../../framework/evidence/index.js';
+import { logOperation } from '../../../framework/logging/index.js';
 import { environments } from '../config/environments.js';
 import { staticData, generateOrderReference } from '../data/catalog.js';
 
@@ -41,13 +42,28 @@ export const options = {
 // Each function below owns one step's application meaning; all HTTP/auth/
 // correlation/data mechanics are delegated to the framework capabilities.
 
+// Diagnostic logging below is safe by construction: only operation name,
+// outcome, category, and a short status/error-message detail are ever
+// passed to logOperation — never a token, header, or response body (see
+// framework/logging/index.js). CC-02/CC-03/CC-04's own error messages
+// already never include credential/secret values (established in their
+// respective Phase 4.4/4.3/4.5 baselines), so surfacing e.message here
+// introduces no new leakage risk.
+
 function authenticateCustomer(authEndpoint) {
-  return authenticate(
-    'POST',
-    authEndpoint,
-    { email: __ENV.AUTH_EMAIL, password: __ENV.AUTH_PASSWORD },
-    'token'
-  );
+  try {
+    const result = authenticate(
+      'POST',
+      authEndpoint,
+      { email: __ENV.AUTH_EMAIL, password: __ENV.AUTH_PASSWORD },
+      'token'
+    );
+    logOperation({ operation: 'authenticate', outcome: 'success', detail: `status=${result.status}` });
+    return result;
+  } catch (e) {
+    logOperation({ operation: 'authenticate', outcome: 'failure', category: 'Authentication Failure', detail: e.message });
+    throw e;
+  }
 }
 
 function searchProducts(apiBaseUrl, token, searchTerm) {
@@ -57,9 +73,15 @@ function searchProducts(apiBaseUrl, token, searchTerm) {
     null,
     withOperationTag({ headers: { Authorization: `Bearer ${token}` } }, 'search')
   );
-  check(res, {
+  const passed = check(res, {
     'search: status is 200': (r) => hasStatus(r, 200),
     'search: searchTerm echoed': (r) => hasField(r, 'args.searchTerm'),
+  });
+  logOperation({
+    operation: 'search',
+    outcome: passed ? 'success' : 'failure',
+    category: passed ? undefined : 'Request/Execution Failure',
+    detail: `status=${res.status}`,
   });
   return res;
 }
@@ -68,7 +90,19 @@ function extractFirstProductId(searchResponse) {
   // Synthetic: the echo service has no real catalog, so the "product id"
   // is a value the search response itself carries — extracted via CC-04
   // exactly as a real product id would be from a real search response.
-  return extract(searchResponse, 'args.searchTerm');
+  try {
+    const productId = extract(searchResponse, 'args.searchTerm');
+    logOperation({ operation: 'extract_product_id', outcome: 'success' });
+    return productId;
+  } catch (e) {
+    logOperation({
+      operation: 'extract_product_id',
+      outcome: 'failure',
+      category: 'Correlation/Data-Dependency Failure',
+      detail: e.message,
+    });
+    throw e;
+  }
 }
 
 function viewProductDetails(apiBaseUrl, token, productId) {
@@ -78,9 +112,15 @@ function viewProductDetails(apiBaseUrl, token, productId) {
     null,
     withOperationTag({ headers: { Authorization: `Bearer ${token}` } }, 'product_details')
   );
-  check(res, {
+  const passed = check(res, {
     'product details: status is 200': (r) => hasStatus(r, 200),
     'product details: productId echoed': (r) => hasField(r, 'args.productId'),
+  });
+  logOperation({
+    operation: 'product_details',
+    outcome: passed ? 'success' : 'failure',
+    category: passed ? undefined : 'Request/Execution Failure',
+    detail: `status=${res.status}`,
   });
   return res;
 }
@@ -92,9 +132,15 @@ function submitOrder(apiBaseUrl, token, productId, orderReference) {
     JSON.stringify({ productId, orderReference }),
     withOperationTag({ headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } }, 'checkout')
   );
-  check(res, {
+  const passed = check(res, {
     'checkout: status is 200': (r) => hasStatus(r, 200),
     'checkout: orderReference echoed': (r) => hasField(r, 'json.orderReference'),
+  });
+  logOperation({
+    operation: 'checkout',
+    outcome: passed ? 'success' : 'failure',
+    category: passed ? undefined : 'Request/Execution Failure',
+    detail: `status=${res.status}`,
   });
   return res;
 }
