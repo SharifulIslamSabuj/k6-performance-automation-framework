@@ -8,17 +8,27 @@
 import { resolveEnvironment } from '../configuration/index.js';
 import exec from 'k6/execution';
 
-// Static category (P2-D06 §8.6): a fixed value, identical regardless of
-// environment. No CC-01 dependency — static data is environment-independent
-// by definition, so consulting environment context here would be
-// unnecessary coupling.
-export function getStaticData(dataSource, key) {
+// Precondition shared by every CC-05 lookup category (static and
+// environment-specific): a data source object and a key. Module-private —
+// not exported, not a new public contract, not a cross-component
+// abstraction — purely removes the byte-identical guard duplication that
+// previously existed between getStaticData and getEnvironmentData
+// (Phase 4.16 refactoring).
+function requireDataSourceAndKey(dataSource, key) {
   if (!dataSource || typeof dataSource !== 'object') {
     throw new Error('Execution/Configuration Failure: a test-data source object is required.');
   }
   if (!key) {
     throw new Error('Execution/Configuration Failure: a test-data key is required.');
   }
+}
+
+// Static category (P2-D06 §8.6): a fixed value, identical regardless of
+// environment. No CC-01 dependency — static data is environment-independent
+// by definition, so consulting environment context here would be
+// unnecessary coupling.
+export function getStaticData(dataSource, key) {
+  requireDataSourceAndKey(dataSource, key);
   if (!(key in dataSource)) {
     throw new Error(`Execution/Configuration Failure: required test-data key "${key}" is missing.`);
   }
@@ -29,12 +39,7 @@ export function getStaticData(dataSource, key) {
 // environment context only (resolveEnvironment) — the data source itself
 // is a separate, CC-05-owned object, never CC-01's configuration source.
 export function getEnvironmentData(dataSource, key) {
-  if (!dataSource || typeof dataSource !== 'object') {
-    throw new Error('Execution/Configuration Failure: a test-data source object is required.');
-  }
-  if (!key) {
-    throw new Error('Execution/Configuration Failure: a test-data key is required.');
-  }
+  requireDataSourceAndKey(dataSource, key);
 
   const environment = resolveEnvironment();
   const environmentData = dataSource[environment];

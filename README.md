@@ -10,9 +10,13 @@ part of QualityForge Technologies' quality assurance practice.
 
 ## Current Status
 
-The project is in its initial setup phase. The Git/GitHub operating model,
-branching strategy, and repository governance have been established. No test
-scenarios, framework code, or K6 scripts have been implemented yet.
+The Git/GitHub operating model, branching strategy, and repository
+governance are established. The reusable Layer-2 framework core (CC-01
+Configuration through CC-07 Execution Control, plus cross-cutting Logging
+and Error Handling) is implemented and baselined, along with an E-commerce
+reference scenario (Layer 1) that exercises the complete framework
+end-to-end. See `framework/README.md` and `applications/README.md` for
+directory-level detail.
 
 ## Technology
 
@@ -64,8 +68,7 @@ tagged as `vMAJOR.MINOR.PATCH` on `main`.
 The repository structure (`framework/` for the reusable Layer-2 core,
 `applications/` for Layer-1 application/domain implementations) is
 established per the approved architecture (P2-D10). See
-[`STRUCTURE.md`](STRUCTURE.md) for the layer/directory mapping. No
-framework capability or scenario logic is implemented yet.
+[`STRUCTURE.md`](STRUCTURE.md) for the layer/directory mapping.
 
 ## Contributing
 

@@ -21,12 +21,15 @@ not an implementation guide. See `framework/README.md` and
   inside `applications/` (that belongs under `framework/`).
 - No `SecretManager`, credential-storage package, or fourth "security"
   layer — security is cross-cutting (see `framework/README.md`).
-- No CI/CD, Docker, reporting-engine, load-profile, or second-domain
-  implementation — these remain deferred to Phases 6/7/9.
+- No CI/CD, Docker, reporting-engine, or second-domain implementation —
+  these remain deferred to Phases 6/7/9. (Load-profile assembly is
+  implemented, as CC-07/`framework/execution/`, per Phase 4.11 — it is
+  execution-control mechanics, not one of the deferred items above.)
 - No generic `utils/`, `common/`, or `helpers/` dumping ground.
 
 ## Status
 
-Structure only. No framework capability or scenario is implemented as of
-Phase 3.4 — see `framework/README.md` and `applications/README.md` for the
-current (empty) state of each directory.
+Phase 4 (all CC-01–CC-07 capabilities, plus the cross-cutting Logging and
+Error Handling capabilities, plus the E-commerce reference scenario) is
+implemented and baselined — see `framework/README.md` and
+`applications/README.md` for current directory-level detail.
