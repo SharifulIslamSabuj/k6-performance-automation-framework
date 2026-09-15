@@ -22,15 +22,31 @@ import { resolveConfig } from '../../../framework/configuration/index.js';
 import { sendRequest } from '../../../framework/request/index.js';
 import { extract } from '../../../framework/correlation/index.js';
 import { getStaticData, generateTestData } from '../../../framework/test-data/index.js';
-import { hasStatus, hasField } from '../../../framework/evidence/index.js';
+import { hasStatus, hasField, buildThresholds } from '../../../framework/evidence/index.js';
 import { logOperation } from '../../../framework/logging/index.js';
 import { classifyError } from '../../../framework/error-handling/index.js';
 import { environments } from '../config/environments.js';
-import { staticData, generateGuestEmail } from '../data/catalog.js';
+import { staticData, generateGuestEmail, provisionalDurationThresholdsMs, provisionalIterationThresholdsMs } from '../data/catalog.js';
 import { buildCart } from './toolshop-cart.js';
 import { withToolshopHeaders, getBillingAddress } from './toolshop-shared.js';
 
-export const options = { vus: 1, iterations: 1 };
+// Thresholds (Phase 5.8): PROVISIONAL TECHNICAL VALIDATION CRITERIA, not
+// an SLA/SLO — see catalog.js and the P5.8 baseline for the full
+// derivation methodology and evidence.
+export const options = {
+  vus: 1,
+  iterations: 1,
+  thresholds: buildThresholds([
+    { metric: 'http_req_duration', expression: `max<${provisionalDurationThresholdsMs.toolshop_product_search}`, operation: 'toolshop_product_search' },
+    { metric: 'http_req_duration', expression: `max<${provisionalDurationThresholdsMs.toolshop_product_detail}`, operation: 'toolshop_product_detail' },
+    { metric: 'http_req_duration', expression: `max<${provisionalDurationThresholdsMs.toolshop_cart_create}`, operation: 'toolshop_cart_create' },
+    { metric: 'http_req_duration', expression: `max<${provisionalDurationThresholdsMs.toolshop_cart_add_item}`, operation: 'toolshop_cart_add_item' },
+    { metric: 'http_req_duration', expression: `max<${provisionalDurationThresholdsMs.toolshop_cart_view}`, operation: 'toolshop_cart_view' },
+    { metric: 'http_req_duration', expression: `max<${provisionalDurationThresholdsMs.toolshop_postcode_lookup}`, operation: 'toolshop_postcode_lookup' },
+    { metric: 'http_req_duration', expression: `max<${provisionalDurationThresholdsMs.toolshop_invoice_create}`, operation: 'toolshop_invoice_create' },
+    { metric: 'iteration_duration', expression: `max<${provisionalIterationThresholdsMs.EJ003}` },
+  ]),
+};
 
 function createGuestInvoice(apiBaseUrl, cartId, guestEmail) {
   const billingLookup = getStaticData(staticData, 'billingLookup');

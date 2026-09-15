@@ -45,3 +45,46 @@ export const staticData = {
 export function generateGuestEmail(ctx) {
   return `guest-${ctx.vuId}-${ctx.iterationInInstance}@example.test`;
 }
+
+// PROVISIONAL TECHNICAL VALIDATION CRITERIA (Phase 5.8) — NOT an SLA, SLO,
+// production requirement, capacity limit, or business-readiness criterion.
+// Basis: controlled observation of the Toolshop reference (staging)
+// environment (see P5.8 baseline, Section 8, for the full dataset).
+// Derivation rule (applied uniformly, not cherry-picked per operation):
+// threshold = ceil(highest steady-state observed value x 1.5), rounded up
+// to the nearest 100ms (operation-level) or 500ms (journey/iteration-level).
+// Samples from one identified transient sandbox-instability episode and
+// one identified k6 first-iteration cold-start effect were excluded from
+// the "steady-state" basis — both fully explained and documented in the
+// P5.8 baseline, not silently discarded. Centralized here (not restated
+// per scenario file) because several operations are shared across
+// multiple journeys. Recalibrate when authoritative application
+// requirements or representative workload evidence become available.
+export const provisionalDurationThresholdsMs = {
+  toolshop_product_search: 500,
+  toolshop_product_detail: 500,
+  toolshop_cart_create: 500,
+  toolshop_cart_add_item: 600,
+  toolshop_cart_view: 500,
+  toolshop_postcode_lookup: 500,
+  toolshop_invoice_create: 600,
+  toolshop_login: 600,
+  toolshop_profile: 500,
+  toolshop_invoice_retrieve: 600,
+};
+
+export const provisionalIterationThresholdsMs = {
+  // EJ-001's threshold is derived from its cold-start-inclusive observed
+  // max (1005ms — the session's first-ever request paid a one-time DNS
+  // resolution cost, confirmed live during this phase's own pass
+  // validation, not merely from the raw observation dataset), not the
+  // steady-state-only max (449ms) used for the other three journeys.
+  // Since options.iterations:1 is this scenario's actual default
+  // invocation pattern, every real execution IS a "first iteration" from
+  // a fresh process's perspective, so a cold DNS cache is a realistic
+  // condition to size against, not a discardable anomaly.
+  EJ001: 2000,
+  EJ002: 3000,
+  EJ003: 4000,
+  EJ004: 5000,
+};
