@@ -40,7 +40,8 @@ function login(apiBaseUrl) {
       'POST',
       `${apiBaseUrl}/users/login`,
       { email: __ENV.AUTH_EMAIL, password: __ENV.AUTH_PASSWORD },
-      'access_token'
+      'access_token',
+      withToolshopHeaders({}, 'toolshop_login')
     );
     logOperation({ operation: 'toolshop_login', outcome: 'success', detail: `status=${result.status}` });
     return result;

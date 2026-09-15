@@ -7,9 +7,21 @@
 // no storage, no SecretManager (P2-D08). Never contains a specific
 // application's credential values, target, or auth-protocol assumptions
 // beyond a configurable response token field.
+//
+// Optional fifth `params` argument (Phase 5.6): request-parameter
+// pass-through only — e.g. so a caller can apply CC-06's existing
+// withOperationTag to this call's own request the same way it already
+// does for every other request. Not a new capability: authenticate()
+// still only ever sends the caller-supplied credentials as the JSON
+// body; `params` never carries credential/secret values itself (nothing
+// here reads a "password"/"token" field out of it), and headers are
+// merged shallowly with the same default-then-override precedence
+// CC-06's withOperationTag/toolshop-shared.js's withToolshopHeaders
+// already use elsewhere. Backward compatible: omitted, behavior is
+// byte-identical to before this parameter existed.
 import { sendRequest } from '../request/index.js';
 
-export function authenticate(method, url, credentials, tokenField) {
+export function authenticate(method, url, credentials, tokenField, params) {
   if (!method || typeof method !== 'string') {
     throw new Error('Authentication Failure: an authentication request method is required.');
   }
@@ -23,8 +35,11 @@ export function authenticate(method, url, credentials, tokenField) {
     throw new Error('Authentication Failure: a token field name is required to extract authentication state.');
   }
 
+  const extraParams = params && typeof params === 'object' ? params : {};
+  const extraHeaders = extraParams.headers && typeof extraParams.headers === 'object' ? extraParams.headers : {};
   const res = sendRequest(method, url, JSON.stringify(credentials), {
-    headers: { 'Content-Type': 'application/json' },
+    ...extraParams,
+    headers: { 'Content-Type': 'application/json', ...extraHeaders },
   });
 
   if (res.status < 200 || res.status >= 300) {
