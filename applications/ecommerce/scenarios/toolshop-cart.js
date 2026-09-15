@@ -19,7 +19,7 @@ import { resolveConfig } from '../../../framework/configuration/index.js';
 import { sendRequest } from '../../../framework/request/index.js';
 import { extract } from '../../../framework/correlation/index.js';
 import { getStaticData } from '../../../framework/test-data/index.js';
-import { hasStatus } from '../../../framework/evidence/index.js';
+import { hasStatus, hasField } from '../../../framework/evidence/index.js';
 import { logOperation } from '../../../framework/logging/index.js';
 import { classifyError } from '../../../framework/error-handling/index.js';
 import { environments } from '../config/environments.js';
@@ -31,7 +31,10 @@ export const options = { vus: 1, iterations: 1 };
 
 function createCart(apiBaseUrl) {
   const res = sendRequest('POST', `${apiBaseUrl}/carts`, null, withToolshopHeaders({}, 'toolshop_cart_create'));
-  const passed = check(res, { 'cart create: status is 201': (r) => hasStatus(r, 201) });
+  const passed = check(res, {
+    'cart create: status is 201': (r) => hasStatus(r, 201),
+    'cart create: id present': (r) => hasField(r, 'id'),
+  });
   logOperation({
     operation: 'toolshop_cart_create',
     outcome: passed ? 'success' : 'failure',
@@ -76,7 +79,10 @@ function addProductToCart(apiBaseUrl, cartId, productId, quantity) {
 
 function getCart(apiBaseUrl, cartId) {
   const res = sendRequest('GET', `${apiBaseUrl}/carts/${cartId}`, null, withToolshopHeaders({}, 'toolshop_cart_view'));
-  const passed = check(res, { 'cart view: status is 200': (r) => hasStatus(r, 200) });
+  const passed = check(res, {
+    'cart view: status is 200': (r) => hasStatus(r, 200),
+    'cart view: id present': (r) => hasField(r, 'id'),
+  });
   logOperation({
     operation: 'toolshop_cart_view',
     outcome: passed ? 'success' : 'failure',

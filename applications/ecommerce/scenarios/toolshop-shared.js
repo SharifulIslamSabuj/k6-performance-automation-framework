@@ -28,7 +28,7 @@
 import { check } from 'k6';
 import { sendRequest } from '../../../framework/request/index.js';
 import { extract } from '../../../framework/correlation/index.js';
-import { hasStatus, withOperationTag } from '../../../framework/evidence/index.js';
+import { hasStatus, hasField, withOperationTag } from '../../../framework/evidence/index.js';
 import { logOperation } from '../../../framework/logging/index.js';
 import { classifyError } from '../../../framework/error-handling/index.js';
 
@@ -45,7 +45,10 @@ export function getBillingAddress(apiBaseUrl, country, postcode) {
     null,
     withToolshopHeaders({}, 'toolshop_postcode_lookup')
   );
-  const passed = check(res, { 'postcode lookup: status is 200': (r) => hasStatus(r, 200) });
+  const passed = check(res, {
+    'postcode lookup: status is 200': (r) => hasStatus(r, 200),
+    'postcode lookup: city present': (r) => hasField(r, 'city'),
+  });
   logOperation({
     operation: 'toolshop_postcode_lookup',
     outcome: passed ? 'success' : 'failure',

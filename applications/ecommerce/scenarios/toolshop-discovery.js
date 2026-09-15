@@ -35,6 +35,7 @@ function searchProducts(apiBaseUrl, searchTerm) {
   const passed = check(res, {
     'product search: status is 200': (r) => hasStatus(r, 200),
     'product search: results present': (r) => hasField(r, 'data'),
+    'product search: product id present': (r) => hasField(r, 'data.0.id'),
   });
   logOperation({
     operation: 'toolshop_product_search',

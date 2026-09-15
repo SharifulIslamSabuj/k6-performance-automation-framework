@@ -43,7 +43,15 @@ function login(apiBaseUrl) {
       'access_token',
       withToolshopHeaders({}, 'toolshop_login')
     );
-    logOperation({ operation: 'toolshop_login', outcome: 'success', detail: `status=${result.status}` });
+    const passed = check(result, {
+      'login: access_token present': (r) => !!r && typeof r.token === 'string' && r.token.length > 0,
+    });
+    logOperation({
+      operation: 'toolshop_login',
+      outcome: passed ? 'success' : 'failure',
+      category: passed ? undefined : 'Correlation/Data-Dependency Failure',
+      detail: `status=${result.status}`,
+    });
     return result;
   } catch (e) {
     logOperation({ operation: 'toolshop_login', outcome: 'failure', category: classifyError(e), detail: e.message });
@@ -113,7 +121,10 @@ function getInvoice(apiBaseUrl, token, invoiceId) {
     null,
     withToolshopHeaders({ headers: { Authorization: `Bearer ${token}` } }, 'toolshop_invoice_retrieve')
   );
-  const passed = check(res, { 'invoice retrieve: status is 200': (r) => hasStatus(r, 200) });
+  const passed = check(res, {
+    'invoice retrieve: status is 200': (r) => hasStatus(r, 200),
+    'invoice retrieve: id present': (r) => hasField(r, 'id'),
+  });
   logOperation({
     operation: 'toolshop_invoice_retrieve',
     outcome: passed ? 'success' : 'failure',
