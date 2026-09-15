@@ -25,17 +25,25 @@ import { getStaticData, generateTestData } from '../../../framework/test-data/in
 import { hasStatus, hasField, buildThresholds } from '../../../framework/evidence/index.js';
 import { logOperation } from '../../../framework/logging/index.js';
 import { classifyError } from '../../../framework/error-handling/index.js';
+import { resolveRuntimeLoadProfile } from '../../../framework/execution/index.js';
 import { environments } from '../config/environments.js';
 import { staticData, generateGuestEmail, provisionalDurationThresholdsMs, provisionalIterationThresholdsMs } from '../data/catalog.js';
 import { buildCart } from './toolshop-cart.js';
 import { withToolshopHeaders, getBillingAddress } from './toolshop-shared.js';
+import { smokeExecutorShape } from './toolshop-profiles.js';
+
+// Execution profile (Phase 6.1): -e PROFILE=smoke selects the sole
+// currently-defined profile via the existing, unmodified CC-07
+// resolveRuntimeLoadProfile — see toolshop-profiles.js.
+const profiles = {
+  smoke: { ...smokeExecutorShape, exec: 'guestCheckout' },
+};
 
 // Thresholds (Phase 5.8): PROVISIONAL TECHNICAL VALIDATION CRITERIA, not
 // an SLA/SLO — see catalog.js and the P5.8 baseline for the full
 // derivation methodology and evidence.
 export const options = {
-  vus: 1,
-  iterations: 1,
+  scenarios: resolveRuntimeLoadProfile(profiles),
   thresholds: buildThresholds([
     { metric: 'http_req_duration', expression: `max<${provisionalDurationThresholdsMs.toolshop_product_search}`, operation: 'toolshop_product_search' },
     { metric: 'http_req_duration', expression: `max<${provisionalDurationThresholdsMs.toolshop_product_detail}`, operation: 'toolshop_product_detail' },

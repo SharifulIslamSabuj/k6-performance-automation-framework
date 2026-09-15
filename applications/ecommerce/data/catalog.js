@@ -74,16 +74,31 @@ export const provisionalDurationThresholdsMs = {
 };
 
 export const provisionalIterationThresholdsMs = {
-  // EJ-001's threshold is derived from its cold-start-inclusive observed
-  // max (1005ms — the session's first-ever request paid a one-time DNS
-  // resolution cost, confirmed live during this phase's own pass
-  // validation, not merely from the raw observation dataset), not the
-  // steady-state-only max (449ms) used for the other three journeys.
-  // Since options.iterations:1 is this scenario's actual default
-  // invocation pattern, every real execution IS a "first iteration" from
-  // a fresh process's perspective, so a cold DNS cache is a realistic
-  // condition to size against, not a discardable anomaly.
-  EJ001: 2000,
+  // EJ-001 — PHASE 6.1 CORRECTION (was 2000ms, Phase 5.8 original).
+  // Original Phase 5.8 derivation: cold-start-inclusive observed max
+  // 1005ms x1.5 = 1507.5, rounded up to nearest 500ms = 2000ms — the
+  // same rule applied to every other value in this object, unchanged
+  // below. New evidence (Phase 6.1 Smoke repeatability, 4 additional
+  // real single-iteration executions: 880.8ms, 1128.6ms, 1578.2ms,
+  // 2060ms) showed 2000ms genuinely fails under ordinary conditions —
+  // a technically valid execution (correct request count, all checks
+  // passed, http_req_duration itself within its own threshold every
+  // time) still exceeded it. Root cause, confirmed via sub-metrics
+  // (http_req_blocked/http_req_connecting/http_req_tls_handshaking):
+  // fresh TCP+TLS connection-establishment variance against the shared
+  // Toolshop sandbox, not application/request slowness — inherent to
+  // every real invocation of this scenario (options.iterations:1 means
+  // every execution pays this cost, exactly the reasoning the original
+  // 2000ms derivation already used, just from a thinner sample).
+  // iteration_duration remains the correct metric (P5.6 established it
+  // as the native, non-custom measure of complete journey time; the
+  // connection cost is a genuine part of real invocation experience,
+  // not a reason to switch metrics). Combined 5-sample dataset (1005,
+  // 880.8, 1128.6, 1578.2, 2060ms), same Phase 5.8 rule applied
+  // unchanged: highest observed 2060ms x1.5 = 3090, rounded up to
+  // nearest 500ms = 3500ms. See P6.1 baseline for full evidence table.
+  // Still a PROVISIONAL TECHNICAL VALIDATION CRITERION, not an SLA.
+  EJ001: 3500,
   EJ002: 3000,
   EJ003: 4000,
   EJ004: 5000,
