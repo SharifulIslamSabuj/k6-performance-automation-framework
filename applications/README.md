@@ -16,15 +16,16 @@ validation activity.
 ## `ecommerce/`
 
 The approved reference implementation (P0/P2-D04). Not part of the reusable
-core. A reference journey (`purchase-flow`: authenticate → search → view
-product details → checkout) is implemented and baselined (Phase 4.10–4.16),
-composed entirely from `framework/` capabilities. No real E-commerce backend
-exists yet — the journey runs against safe, public, credential-free test
-services (reqres.in, httpbin.org) as a synthetic but technically real,
-network-executed stand-in; a real backend remains Phase 5.
+core. Phase 4.10–4.16 validated framework mechanics against synthetic
+targets (reqres.in, httpbin.org); Phase 5 transitions this to a real
+E-commerce application — Toolshop (Practice Software Testing, P5.1). Four
+approved business journeys (P5.3 EJ-001..004: guest product discovery,
+guest cart building, guest checkout, authenticated checkout) are
+implemented and baselined (Phase 5.5), composed entirely from `framework/`
+capabilities against Toolshop's real API.
 
 | Directory | Responsibility |
 |---|---|
-| `scenarios/` | Application-specific journey/scenario composition (AC-01), consuming `framework/` capabilities — `purchase-flow.js` (journey), `purchase-flow-profiles.js` (load-profile shapes), `purchase-flow-runtime.js` (runtime-controlled entry point) |
+| `scenarios/` | Application-specific journey/scenario composition (AC-01), consuming `framework/` capabilities — `toolshop-discovery.js` (EJ-001), `toolshop-cart.js` (EJ-002), `toolshop-guest-checkout.js` (EJ-003), `toolshop-authenticated-checkout.js` (EJ-004), `toolshop-shared.js` (small Toolshop-specific helpers reused by EJ-003/EJ-004) |
 | `config/` | This application's environment/execution configuration values, resolved via `framework/configuration` (CC-01) |
 | `data/` | This application's test data, consumed via `framework/test-data` (CC-05) |

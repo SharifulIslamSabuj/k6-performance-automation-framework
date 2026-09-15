@@ -1,29 +1,26 @@
 // Ecommerce application — environment-level configuration values.
 // Owned by this application (P3.4); resolved through framework/configuration
 // (CC-01). Contains only environment/execution-level values — no scenario
-// meaning, no credential values. baseUrl points to k6's own public
-// validation endpoint (test.k6.io), matching Phase 3.6's minimal-validation
-// target; no production system or credential is referenced.
+// meaning, no credential values.
 //
-// authEndpoint / apiBaseUrl (added Phase 4.10): no real E-commerce backend
-// exists yet in this project. These point to the same safe, public,
-// credential-free test services already used throughout Phase 4.1-4.9
-// validation (reqres.in's documented fake-auth endpoint; httpbin.org as a
-// generic JSON echo API) as a synthetic stand-in so the reference
-// scenario (applications/ecommerce/scenarios/purchase-flow.js) can be
-// exercised with real HTTP calls. No production system is referenced.
+// Phase 5.5: replaces the Phase 4 synthetic validation targets
+// (test.k6.io, reqres.in, httpbin.org) with the real Toolshop — Practice
+// Software Testing reference application (P5.1). Both environments
+// documented in Toolshop's own OpenAPI spec "servers" list (P5.1 Section
+// 5, P5.2 Section 4) are mapped here: the shared public sandbox and the
+// documented local/self-hosted instance. A single apiBaseUrl suffices per
+// environment — unlike the earlier synthetic setup (which split traffic
+// across two unrelated public services), every Toolshop capability used
+// by the approved journeys (auth, catalog, cart, invoice) lives under one
+// base API URL, resolving the ambiguity the Phase 4.16 baseline flagged
+// around the previously-unused baseUrl/environmentLabel keys (removed
+// here — Toolshop genuinely needs no value distinct from apiBaseUrl).
 
 export const environments = {
   dev: {
-    baseUrl: 'https://test.k6.io',
-    environmentLabel: 'dev-environment',
-    authEndpoint: 'https://reqres.in/api/login',
-    apiBaseUrl: 'https://httpbin.org',
+    apiBaseUrl: 'http://localhost:8091',
   },
   staging: {
-    baseUrl: 'https://test.k6.io',
-    environmentLabel: 'staging-environment',
-    authEndpoint: 'https://reqres.in/api/login',
-    apiBaseUrl: 'https://httpbin.org',
+    apiBaseUrl: 'https://api.practicesoftwaretesting.com',
   },
 };
